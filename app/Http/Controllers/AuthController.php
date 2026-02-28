@@ -57,12 +57,15 @@ class AuthController extends Controller
             // Regenerate session ID (prevent session fixation attack)
             $request->session()->regenerate();
 
+            // Store session fingerprint
+            $fingerprint = $this->generateFingerprint($request);
+            $request->session()->put('session_fingerprint', $fingerprint);
+
             return redirect()->intended('/dashboard');
         }
 
         // Login failed
         return back()->withErrors(['email' => 'The provided credentials do not match our records.'])->onlyInput('email');
-
     }
 
     // Handle logout
@@ -77,5 +80,54 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         return redirect('/login');
+    }
+
+    // Crude way to generate fingerprint
+    // private function generateFingerprint(Request $request): string
+    // {
+    //     $factors = [
+    //         'user_agent' => $request->userAgent(),
+    //         'accept_language' => $request->header('Accept-Language'),
+    //         'accept_encoding' => $request->header('Accept-Encoding'),
+    //     ];
+    //     return hash('sha256', json_encode($factors));
+    // }
+
+    // More refined way to generate fingerprint
+    private function generateFingerprint(Request $request): string
+    {
+        // Only use STABLE factors that don't change during normal use
+        $factors = [
+            'user_agent' => $this->normalizeUserAgent($request->userAgent()),
+            // Don't use IP (changes too often)
+            // Don't use Accept-Language (can change)
+        ];
+
+        return hash('sha256', json_encode($factors));
+    }
+
+    private function normalizeUserAgent(string $userAgent): string
+    {
+        // Extract only major browser and OS
+        // Ignore minor version changes
+
+        // Example: 
+        // Chrome/120.0.0.0 → Chrome/120
+        // Firefox/122.0 → Firefox/122
+
+        if (preg_match('/Chrome\/(\d+)/', $userAgent, $matches)) {
+            return "Chrome/{$matches[1]}";
+        }
+
+        if (preg_match('/Firefox\/(\d+)/', $userAgent, $matches)) {
+            return "Firefox/{$matches[1]}";
+        }
+
+        if (preg_match('/Safari\/(\d+)/', $userAgent, $matches)) {
+            return "Safari/{$matches[1]}";
+        }
+
+        // Fallback: use full user agent
+        return $userAgent;
     }
 }
