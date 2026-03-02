@@ -61,9 +61,13 @@ class ValidateSessionFingerprint
 
         // Combine multiple factors
         $factors = [
-            'user_agent' => $request->userAgent(),
-            'accept_language' => $request->header('Accept-Language'),
-            'accept_encoding' => $request->header('Accept-Encoding')
+            # Refined way
+            'user_agent' => $this->normalizeUserAgent($request->userAgent()),
+
+            # crude way
+            // 'user_agent' => $request->userAgent(),
+            // 'accept_language' => $request->header('Accept-Language'),
+            // 'accept_encoding' => $request->header('Accept-Encoding')
         ];
 
         // Create a hash of combination factors
@@ -74,5 +78,30 @@ class ValidateSessionFingerprint
     {
         $fingerprint = $this->generateFingerprint($request);
         $request->session()->put('session_fingerprint', $fingerprint);
+    }
+
+    private function normalizeUserAgent(string $userAgent): string
+    {
+        // Extract only major browser and OS
+        // Ignore minor version changes
+
+        // Example: 
+        // Chrome/120.0.0.0 → Chrome/120
+        // Firefox/122.0 → Firefox/122
+
+        if (preg_match('/Chrome\/(\d+)/', $userAgent, $matches)) {
+            return "Chrome/{$matches[1]}";
+        }
+
+        if (preg_match('/Firefox\/(\d+)/', $userAgent, $matches)) {
+            return "Firefox/{$matches[1]}";
+        }
+
+        if (preg_match('/Safari\/(\d+)/', $userAgent, $matches)) {
+            return "Safari/{$matches[1]}";
+        }
+
+        // Fallback: use full user agent
+        return $userAgent;
     }
 }

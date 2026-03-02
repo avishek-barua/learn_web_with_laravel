@@ -25,6 +25,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Logout route
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/session-debug', function (Illuminate\Http\Request $request) {
     return [

@@ -82,7 +82,7 @@ class AuthController extends Controller
         return redirect('/login');
     }
 
-    // Crude way to generate fingerprint
+    # Crude way to generate fingerprint
     // private function generateFingerprint(Request $request): string
     // {
     //     $factors = [
@@ -93,7 +93,7 @@ class AuthController extends Controller
     //     return hash('sha256', json_encode($factors));
     // }
 
-    // More refined way to generate fingerprint
+    # More refined way to generate fingerprint
     private function generateFingerprint(Request $request): string
     {
         // Only use STABLE factors that don't change during normal use
