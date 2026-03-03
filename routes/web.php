@@ -23,12 +23,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    Route::get('/dashboard', function () {
+    Route::get('dashboard', function () {
         return view('dashboard');
-    })->middleware('auth');  // Only accessible when logged in
+    })->name('dashboard');  // Only accessible when logged in
 
     // Notes routes
     Route::resource('notes', NoteController::class);
+
+    // Sharing routes
+    Route::get('/notes/{note}/share', [NoteController::class, 'share'])->name('notes.share');
+    Route::post('/notes/{note}/share', [NoteController::class, 'storeShare'])->name('notes.share.store');
+    Route::delete('/notes/{note}/share/{share}', [NoteController::class, 'removeShare'])->name('notes.share.remove');
 });
 
 // Keep your test routes
