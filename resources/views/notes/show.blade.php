@@ -36,6 +36,31 @@
             font-size: 14px;
             margin-top: 5px;
         }
+        .permission-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .badge-owner {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        .badge-read {
+            background: #E3F2FD;
+            color: #1976D2;
+        }
+        .badge-write {
+            background: #FFF3E0;
+            color: #F57C00;
+        }
+        .shared-by {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
         .content {
             line-height: 1.8;
             color: #444;
@@ -58,6 +83,10 @@
         }
         .btn-primary {
             background: #4CAF50;
+            color: white;
+        }
+        .btn-info {
+            background: #2196F3;
             color: white;
         }
         .btn-secondary {
@@ -93,22 +122,42 @@
                         · Updated {{ $note->updated_at->diffForHumans() }}
                     @endif
                 </div>
+                
+                @if($permission === 'owner')
+                    <span class="permission-badge badge-owner">👑 You own this note</span>
+                @elseif($permission === 'write')
+                    <span class="permission-badge badge-write">✏️ Read & Write Access</span>
+                    <div class="shared-by">Shared by {{ $note->user->name }}</div>
+                @elseif($permission === 'read')
+                    <span class="permission-badge badge-read">👁️ Read Only Access</span>
+                    <div class="shared-by">Shared by {{ $note->user->name }}</div>
+                @endif
             </div>
         </div>
 
         <div class="content">{{ $note->content }}</div>
 
         <div class="actions">
-            <a href="{{ route('notes.edit', $note) }}" class="btn btn-primary">Edit</a>
+            @if($permission === 'owner' || $permission === 'write')
+                <a href="{{ route('notes.edit', $note) }}" class="btn btn-primary">Edit</a>
+            @endif
+            
+            @if($permission === 'owner')
+                <a href="{{ route('notes.share', $note) }}" class="btn btn-info">Share</a>
+            @endif
+            
             <a href="{{ route('notes.index') }}" class="btn btn-secondary">Back to Notes</a>
-            <form method="POST" action="{{ route('notes.destroy', $note) }}" style="display: inline;">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-danger" 
-                    onclick="return confirm('Are you sure you want to delete this note?')">
-                    Delete
-                </button>
-            </form>
+            
+            @if($permission === 'owner')
+                <form method="POST" action="{{ route('notes.destroy', $note) }}" style="display: inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger" 
+                        onclick="return confirm('Are you sure you want to delete this note?')">
+                        Delete
+                    </button>
+                </form>
+            @endif
         </div>
     </div>
 </body>

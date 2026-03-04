@@ -58,7 +58,7 @@ class NoteController extends Controller
     public function show(Note $note)
     {
         // AUTHORIZATION: Can user view this note?
-        if (!$note->canView(Auth::user())) {
+        if (! $note->canView(Auth::user())) {
             abort(403, 'You do not have permission to view this note.');
         }
 
@@ -74,8 +74,8 @@ class NoteController extends Controller
     public function edit(Note $note)
     {
         // AUTHORIZATION: Can user edit this note?
-        if (!$note->canEdit(Auth::user())) {
-            abort(403, 'Unauthorized access to this note.');
+        if (! $note->canEdit(Auth::user())) {
+            abort(403, 'You do not have permission to edit this note.');
         }
 
         return view('notes.edit', compact('note'));
@@ -87,8 +87,8 @@ class NoteController extends Controller
     public function update(Request $request, Note $note)
     {
         // AUTHORIZATION: Can user edit this note?
-        if (!$note->canEdit(Auth::user())) {
-            abort(403, 'Unauthorized access to this note.');
+        if (! $note->canEdit(Auth::user())) {
+            abort(403, 'You do not have permission to edit this note.');
         }
 
         $validated = $request->validate([
@@ -122,14 +122,15 @@ class NoteController extends Controller
      */
     public function share(Note $note)
     {
+
         // AUTHORIZATION: Only owner can share
-        if (!$note->user_id !== Auth::user()) {
+        if ( $note->user_id !== Auth::id()) {
             abort(403, 'Only the note owner can share it');
         }
 
         // Get all users except owner and already shared users
         $sharedUserIds = $note->shares()->pluck('user_id')->toArray();
-        $availableUsers = User::where('id', '!=', Auth::user())->whereNotIn('id', $sharedUserIds)->get();
+        $availableUsers = User::where('id', '!=', Auth::id())->whereNotIn('id', $sharedUserIds)->get();
 
         // Get current shares
         $shares = $note->shares()->with('user')->get();
@@ -157,13 +158,11 @@ class NoteController extends Controller
             return back()->withErrors(['user_id' => 'You cannot share with yourself.']);
         }
 
-
         // Create share
         $note->shares()->create($validated);
 
         return back()->with('success', 'Note shared successfully!');
     }
-
 
     /**
      * Remove share
@@ -179,7 +178,6 @@ class NoteController extends Controller
 
         return back()->with('success', 'Share removed successfully!');
     }
-
 
     /**
      * Get user's permission level for a note
